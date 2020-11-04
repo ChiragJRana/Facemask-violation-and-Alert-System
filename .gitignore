@@ -128,7 +128,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
+Tracking/
+AlarmSwitch/
 # Training and practice folder for the project
 ML_model_and_training/
 WebRTC/
