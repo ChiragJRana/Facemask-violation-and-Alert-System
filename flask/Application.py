@@ -28,7 +28,6 @@ def post_data():
     if request_dictt['password'] == password and request_dictt['username'] != '':
         if request_dictt['status'] == 0:
             msg = alarm.work_off()
-            # popUp(request_dictt)
         else:
             msg = alarm.work_on()
     else:
@@ -66,7 +65,7 @@ class Application(tk.Tk):
         
         self.frames = {}
 
-        for f in (StartPage, Image):
+        for f in (StartPage, ImagePage):
             frame = f(container, self)
             self.frames[f] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -91,7 +90,7 @@ class StartPage(tk.Frame):
         self.entry.pack(padx=10, pady=20)
         button2 = ttk.Button(self, text= "Change Password", command=self.changepassword)
         button2.pack(side = tk.TOP, pady= 10)
-        button1 = ttk.Button(self, text= "Start The Camera Recording", command=lambda: controller.show_frame(Image))
+        button1 = ttk.Button(self, text= "Start The Camera Recording", command=lambda: controller.show_frame(ImagePage))
         button1.pack(side = tk.TOP, pady= 10)
         
     def changepassword(self):
@@ -103,7 +102,7 @@ class StartPage(tk.Frame):
         tk.Frame.__delattr__(self,self.parent)
     
 
-class Image(tk.Frame):
+class ImagePage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -240,4 +239,5 @@ class Image(tk.Frame):
 
 if __name__ == '__main__':
     app = Application()
+    ttk.Style().configure("TButton", padding=6, relief="flat",background="#ccc")
     app.mainloop()
