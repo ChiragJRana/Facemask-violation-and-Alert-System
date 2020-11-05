@@ -3,7 +3,7 @@ This is a Desktop Application using Tkinter and Face mask detection alert using 
 
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
+Use the package manager [pip](https://pip.pypa.io/en/stable/) to install and make your application work.
 
 ```bash
 pip install -r requirements.txt

@@ -29,12 +29,12 @@ class Alarm:
     def work_off(self):
         self.stop_alarm()
         self.staff_switch = False        
-        print('Staff turned the alarm off')
-
+        print('Staff turned off the alarm')
+        return "you have turned off the alarm"
     def work_on(self):
         self.staff_switch = True
-        self.ring_alarm()
-        print('Staff has turned the alarm on')
+        print('Staff has turned on the alarm.')
+        return "you have turned on the alarm."
 
     def __del__(self):
         mixer.music.stop()

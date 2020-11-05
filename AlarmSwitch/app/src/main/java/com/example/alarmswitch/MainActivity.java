@@ -16,6 +16,9 @@ import okhttp3.Response;
 import androidx.appcompat.app.AppCompatActivity;
 
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,78 +35,58 @@ public class MainActivity extends AppCompatActivity {
     private MediaType mediaType;
     private RequestBody requestBody;
     private Button alarm;
-
+    private Integer status = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         alarm = findViewById(R.id.alarm_control);
+        alarm.setText("STOP");
 //        String postBodyText = "{'status': 1}";
 //        MediaType mediaType = MediaType.parse("text/plain; charset=utf-8");
 //        RequestBody postBody = RequestBody.create(mediaType, postBodyText);
         alarm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                postRequest("{status: 1}", url);
+
+                String username = getIntent().getStringExtra("username");
+                String password=getIntent().getStringExtra("password");
+
+                try {
+                    postRequest("{status:"+status.toString()+",username:"+username+",password: "+password+"}", url);
+                    status = (status + 1)%2;
+                    if (alarm.getText() == "STOP"){
+                        alarm.setText("START");
+                    }
+                    else{
+                        alarm.setText("STOP");
+                    }
+
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
+
 
         });
 
-//        alarm.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                    RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
-//                    String url = "http://192.168.137.1:3000/test";
-//                    //Put your local IPv4 address in here along with the port number
-//                    // and replace test with the route in which you want to post the json variable
-//                    /*
-//                    *   { turn: "false" }  is the json variable sent to the server
-//                    * */
-//                    Log.d("TAG", "onClick: button clicked ");
-//                    StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
-//                        @Override
-//                        public void onResponse(String response) {
-//                            Log.d("TAG", "onResponse: "+response);
-//                        }
-//                    }, new Response.ErrorListener() {
-//                        @Override
-//                        public void onErrorResponse(VolleyError error) {
-//                            Log.d("TAG", "onErrorResponse:  response"+error);
-//                        }
-//                    }){
-//                        @Override
-//                        protected Map<String, String> getParams()  {
-//                            Map<String,String> params = new HashMap();
-//                            params.put("turn", ALARM_STATUS+"");
-//                            return params;
-//                        }
-//
-//                        @Override
-//                        public Map<String, String> getHeaders()  {
-//                            Map<String,String> params=new HashMap();
-//                            params.put("Content-Type","application/x-www-form-urlencoded");
-//                            return params;
-//                        }
-//                    };
-//                    requestQueue.add(stringRequest);
-//
-//                }
-//
-//        });
     }
-    private RequestBody buildRequestBody(String msg) {
-        postBodyString = msg;
+    private RequestBody buildRequestBody(JSONObject msg) {
+        JSONObject json = msg;
         mediaType = MediaType.parse("application/json; charset=utf-8");
-        requestBody = RequestBody.create(postBodyString, mediaType);
+        requestBody = RequestBody.create(String.valueOf(json), mediaType);
         return requestBody;
     }
 
-    private void postRequest(String postBody, String postUrl ) {
+    private void postRequest(String postBody, String postUrl ) throws JSONException {
 
             OkHttpClient client = new OkHttpClient();
-            RequestBody requestBody = buildRequestBody(postBody);
+            JSONObject obj = new JSONObject(postBody);
+            RequestBody requestBody = buildRequestBody(obj);
+
+            Log.d("TAG", postBody);
             Request request = new Request.Builder()
-//                    .header("Content-Type","application/json")
                     .post(requestBody)
                     .url(postUrl)
                     .build();
@@ -117,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
 
                             Log.d("TAG", url);
                             Toast.makeText(MainActivity.this, "Something went wrong:" + " " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            Log.d("TAG","Something went wrong:" + " " + e.getMessage());
                             call.cancel();
 
 
@@ -130,15 +114,10 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            try {
-                                Toast.makeText(MainActivity.this, response.body().string(), Toast.LENGTH_LONG).show();
-//                                Log.d("TAG", )
-                            } catch (IOException e) {
-//                                e.printStackTrace();
-                                Log.d("Tag", e.toString());
+                                 Log.d("TAG", response.+ " ");
                             }
                         }
-                    });
+                    );
 
 
                 }

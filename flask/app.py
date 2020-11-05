@@ -16,10 +16,9 @@ stat = False
 # Create a Product
 @app.route('/', methods=['POST'])
 def post_data():
-    status = request.json['status'] 
-    print(status)
+    print(request.get_json())
 
-    return {'status':'200'}
+    return jsonify({'status':'200'})
 
 @app.route('/', methods=['GET'])
 def get_data():
@@ -27,40 +26,37 @@ def get_data():
     return {'status':'200'}
 
 
-# class App:
-#     def __init__(self,window,window_title, video_source=0):
-#         self.window = window
-#         self.window.title(window_title)
-#         self.video_source = video_source
-#         self.alarm = Alarm()
-#         self.vid = CustomerImage(alarm = self.alarm,video_source = video_source)
-#         self.canvas = Canvas(window)
-#         self.canvas.pack()
-#         self.delay = 1
-#         self.update()
-#         self.window.mainloop()
+class App:
+    def __init__(self,window,window_title, video_source=0):
+        self.window = window
+        self.window.title(window_title)
+        self.t2 = threading.Thread(target=flaskapi, daemon=True)
+        self.t2.start()
+        # self.video_source = video_source
+        # self.alarm = Alarm()
+        # self.vid = CustomerImage(alarm = self.alarm,video_source = video_source)
+        self.canvas = Canvas(window)
+        self.canvas.pack()
+        # self.delay = 1
+        # self.update()
+        self.window.mainloop()
 
-#     def update(self):
-#         frame = self.vid.capture_image()
-#         self.photo = ImageTk.PhotoImage(image = Image.fromarray(frame))
-#         self.canvas.create_image(0,0,image = self.photo, anchor = NW)
-#         self.window.after(self.delay,self.update)
+    # def update(self):
+    #     frame = self.vid.capture_image()
+    #     self.photo = ImageTk.PhotoImage(image = Image.fromarray(frame))
+    #     self.canvas.create_image(0,0,image = self.photo, anchor = NW)
+    #     self.window.after(self.delay,self.update)
     
-#     def __del__(self):
-        # self.vid.stop()
+    # def __del__(self):
+        
 
 
-# def tkinter():
-#     # App(Tk(), "COVID Violation Detect System")
+def tkinter():
+    App(Tk(), "COVID Violation Detect System")
 
 def flaskapi():
-    app.run(debug=True,use_reloader=False)
-
+    app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
+    
 if __name__ == '__main__':
-    # tkinter()
+    tkinter()
     # t1 = threading.Thread(target=tkinter)
-    flaskapi()
-    # t1.start()
-    # t2.start()
-    # t1.join()
-    # t2.join()
