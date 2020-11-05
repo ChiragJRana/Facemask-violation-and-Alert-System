@@ -4,9 +4,9 @@ from PIL import ImageTk, Image
 import cv2
 import numpy as np
 from flask import Flask, request, jsonify
-from .FaceMask import CustomerImage
-from .alert import Alarm
-from .imagesearch.centroidtracker import CentroidTracker
+from FaceMask import CustomerImage
+from alert import Alarm
+from imagesearch.centroidtracker import CentroidTracker
 import imutils
 import time
 import threading
@@ -17,17 +17,18 @@ app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 stat = False
 alarm = Alarm()
-# default password
 password = 'password'
 
+LARGE_FONT = ("Verdana", 12)
 # Create a Product
 @app.route('/', methods=['POST'])
 def post_data():
     msg = "No changes"
     request_dictt = request.get_json()
-    if request_dictt['password'] == password:
+    if request_dictt['password'] == password and request_dictt['username'] != '':
         if request_dictt['status'] == 0:
             msg = alarm.work_off()
+            # popUp(request_dictt)
         else:
             msg = alarm.work_on()
     else:
@@ -38,7 +39,19 @@ def post_data():
 def get_data():
     return {'status':'200'}
 
-LARGE_FONT = ("Verdana", 12)
+# def popUp(dictt):
+#     popup = tk.Tk()
+#     if dictt['status'] == 0:
+#         string = f"{dictt['username']} has turned off the Alarm System"
+#     else:
+#         strin = f"{dictt['username']} has turned On the Alarm System"
+#     popup.title('Notification')
+#     label = ttk.Label(popup, test = string, font=LARGE_FONT)
+#     label.pack(siide='top', fill = 'x', pady=10)
+#     button = ttk.Button(popup, text = "Okay", command=popup.destroy)
+#     button.pack()
+#     popup.mainloop()
+
 
 class Application(tk.Tk):
     def __init__(self, *args, **kwargs):
@@ -53,7 +66,7 @@ class Application(tk.Tk):
         
         self.frames = {}
 
-        for f in (StartPage, PageOne):
+        for f in (StartPage, Image):
             frame = f(container, self)
             self.frames[f] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -78,7 +91,7 @@ class StartPage(tk.Frame):
         self.entry.pack(padx=10, pady=20)
         button2 = ttk.Button(self, text= "Change Password", command=self.changepassword)
         button2.pack(side = tk.TOP, pady= 10)
-        button1 = ttk.Button(self, text= "Start The Camera Recording", command=lambda: controller.show_frame(PageOne))
+        button1 = ttk.Button(self, text= "Start The Camera Recording", command=lambda: controller.show_frame(Image))
         button1.pack(side = tk.TOP, pady= 10)
         
     def changepassword(self):
@@ -90,7 +103,7 @@ class StartPage(tk.Frame):
         tk.Frame.__delattr__(self,self.parent)
     
 
-class PageOne(tk.Frame):
+class Image(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -142,7 +155,7 @@ class PageOne(tk.Frame):
             self.alarm.stop_alarm()
             
 
-    def get_frame(self):
+    def capture_image(self):
         
         if self.vid.isOpened():
             ret, frame = self.vid.read()
@@ -205,7 +218,7 @@ class PageOne(tk.Frame):
 
     def update(self):
         if self.recording:
-            ret, frame = self.get_frame()
+            ret, frame = self.capture_image()
             if ret:
                 self.photo = ImageTk.PhotoImage(image = Image.fromarray(frame).resize((self.width,self.height), Image.ANTIALIAS))
                 self.canvas.create_image(2, 2, image = self.photo, anchor ='nw')
