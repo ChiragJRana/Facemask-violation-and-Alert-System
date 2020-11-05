@@ -111,10 +111,18 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onResponse(Call call, final Response response) throws IOException {
+
                     runOnUiThread(new Runnable() {
                         @Override
+
                         public void run() {
-                                 Log.d("TAG", response+ " ");
+                            if (status == 1){
+                                Toast.makeText(MainActivity.this, "You have Turned Off the Alarm.", Toast.LENGTH_SHORT).show();
+                            }else{
+                                Toast.makeText(MainActivity.this, "You have Turned On the Alarm.", Toast.LENGTH_SHORT).show();
+
+                            }
+//                            Log.d("TAG", response+ " ");
                             }
                         }
                     );
