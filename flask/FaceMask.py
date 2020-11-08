@@ -61,6 +61,7 @@ class CustomerImage:
                 faces.append(face)
                 locs.append((start_x, start_y, end_x, end_y))
 
+        
 
         if len(faces) > 0:
             # making batch predictions on all the faces rather than one by one
@@ -68,42 +69,3 @@ class CustomerImage:
             preds = self.mask_net.predict(faces , batch_size=32)
         
         return (locs, preds)
-
-    
-    # def capture_image(self, frame):
-        
-    #     frame = imutils.resize(frame, width=400)
-        
-    #     (locs, preds) = self.detect_and_find_face(frame)
-        
-    #     for (box, pred) in zip(locs, preds):
-    #         # unpack the bounding box and predictions
-    #         (start_x, start_y, end_x, end_y) = box
-    #         (mask, withoutMask) = pred
-
-    #         # determine the class label and color we'll use to draw the bounding box and text
-    #         label = "Mask" if mask > withoutMask else "No Mask"
-    #         color = (0, 255, 0) if label == "Mask" else (0, 0, 255)
-    #         # print(self.limit)
-    #         # if label == 'Mask':
-    #         #     self.limit = max(self.limit-1,0)
-
-    #         # if label == "No Mask": self.limit = min(20,self.limit + 1)
-
-    #         # if self.limit == 0:
-    #         #     self.alarm.stop_alarm()
-
-    #         # if self.limit == 20:
-    #         #     self.alarm.ring_alarm()
-                
-    #         # include the probability in the label
-    #         label = "{}: {:.2f}%".format(label, max(mask, withoutMask) * 100)
-
-    #         # display the label and bounding box rectangle on the output frame
-    #         cv2.putText(frame, label, (start_x, start_y - 10),
-    #             cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
-    #         cv2.rectangle(frame, (start_x, start_y), (end_x, end_y), color, 2)
-        
-    #     # flip the image as opencv doesnt how mirror image if not included still not a problem
-    #     return (cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-
