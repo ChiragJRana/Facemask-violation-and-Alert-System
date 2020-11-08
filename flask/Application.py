@@ -18,13 +18,15 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 stat = False
 alarm = Alarm()
 password = 'password'
-
+maxlimit = 2
 LARGE_FONT = ("Verdana", 12)
-# Create a Product
+
 @app.route('/', methods=['POST'])
 def post_data():
     msg = "No changes"
+    
     request_dictt = request.get_json()
+    print(request_dictt)
     if request_dictt['password'] == password and request_dictt['username'] != '':
         if request_dictt['status'] == 0:
             msg = alarm.work_off()
@@ -38,20 +40,6 @@ def post_data():
 def get_data():
     return {'status':'200'}
 
-# def popUp(dictt):
-#     popup = tk.Tk()
-#     if dictt['status'] == 0:
-#         string = f"{dictt['username']} has turned off the Alarm System"
-#     else:
-#         strin = f"{dictt['username']} has turned On the Alarm System"
-#     popup.title('Notification')
-#     label = ttk.Label(popup, test = string, font=LARGE_FONT)
-#     label.pack(siide='top', fill = 'x', pady=10)
-#     button = ttk.Button(popup, text = "Okay", command=popup.destroy)
-#     button.pack()
-#     popup.mainloop()
-
-
 class Application(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
@@ -62,7 +50,6 @@ class Application(tk.Tk):
         container.pack(side="top", fill="both", expand=True)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
-        
         self.frames = {}
 
         for f in (StartPage, ImagePage):
@@ -82,7 +69,7 @@ class StartPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
 
-        self.parent =parent
+        self.parent = parent
         label = ttk.Label(self, text = "Welcome to the Face Mask Detection Application", font = LARGE_FONT)
         label.pack(pady=15, padx=20)
         self.entry = ttk.Entry(self)
@@ -90,13 +77,22 @@ class StartPage(tk.Frame):
         self.entry.pack(padx=10, pady=20)
         button2 = ttk.Button(self, text= "Change Password", command=self.changepassword)
         button2.pack(side = tk.TOP, pady= 10)
-        button1 = ttk.Button(self, text= "Start The Camera Recording", command=lambda: controller.show_frame(ImagePage))
+        self.entry1 = ttk.Entry(self)
+        self.entry1.insert(10,maxlimit)    
+        self.entry1.pack(padx=10, pady=20)
+        button3 = ttk.Button(self, text= "Enter the number of people Allowed", command=self.setMaxLimit)
+        button3.pack(side = tk.TOP, pady= 10)
+        button1 = ttk.Button(self, text= "Go to the Camera Recording", command=lambda: controller.show_frame(ImagePage))
         button1.pack(side = tk.TOP, pady= 10)
         
     def changepassword(self):
         global password
         password = self.entry.get()
         print(password)
+
+    def setMaxLimit(self):
+        global maxlimit
+        maxlimit = int(self.entry1.get())
 
     def __del__(self):
         tk.Frame.__delattr__(self,self.parent)
@@ -111,7 +107,8 @@ class ImagePage(tk.Frame):
         #  ======================== Attaching the Alarm , Image, Canvas =====================================
         self.alarm = alarm
         self.facemask = CustomerImage()
-        
+        self.tracker = CentroidTracker()
+
         # ==================================== Widgets ======================================================  
         self.canvas = tk.Canvas(self, bg="black")
         self.default_image = Image.open("default.png")
@@ -128,8 +125,8 @@ class ImagePage(tk.Frame):
         self.StartButton.pack(side = tk.LEFT, padx = 10, pady = 10)
         
         # ========================== Additional   Variables =================================================
-        self.limit = 0
-        self.count = 0
+        self.people_limit = 0
+        self.mask_limit = 0
         self.recording = False
         self.update()
         
@@ -162,14 +159,30 @@ class ImagePage(tk.Frame):
         if ret:
             
             (locs, preds) = self.facemask.detect_and_find_face(frame)
-            
-            if len(preds) >= 3 and not self.alarm.alarm_switch and self.limit == 40:
-                    self.takeSnapShot()
-                    self.alarm.ring_alarm()
-                    self.limit = 0
+            objects = self.tracker.update(locs)
 
-            for (box, pred) in zip(locs, preds):
-    
+            ObjectIDs =  objects.keys()
+            centroids = objects.values()
+            print(self.mask_limit, self.people_limit)
+            if len(preds) > maxlimit:
+                self.people_limit = min(self.people_limit+1,15)
+            else:
+                self.people_limit = max(0, self.people_limit-1)
+            
+            if len(preds) == 0:
+                self.mask_limit = 0
+                self.people_limit = 0
+                self.alarm.stop_alarm()
+
+            if not self.alarm.alarm_switch and self.people_limit == 15:
+                self.takeSnapShot()
+                self.alarm.ring_alarm()
+            
+            if self.alarm.alarm_switch and self.people_limit == 0 and self.mask_limit == 0:
+                    self.alarm.stop_alarm()
+            without_mask = 0
+
+            for (box, pred, ObjectID, centroid) in zip(locs, preds, ObjectIDs, centroids):
                 # unpack the bounding box and predictions
                 (startX, startY, endX, endY) = box
                 (mask, withoutMask) = pred
@@ -178,31 +191,38 @@ class ImagePage(tk.Frame):
                 label = "Mask" if mask > withoutMask else "No Mask"
                 color = (0, 255, 0) if label == "Mask" else (0, 0, 255)
                 
-                if label == 'Mask':
-                    self.limit = max(self.limit-1,0)
-
                 if label == "No Mask": 
-                    self.limit = min(40,self.limit + 1)
-                    
-
-                if self.alarm.alarm_switch and self.limit == 0:
-                    self.alarm.stop_alarm()
-
-                if not self.alarm.alarm_switch and  self.limit == 40:
+                    without_mask += 1
+                
+                if not self.alarm.alarm_switch and  self.mask_limit == 15:
                     self.takeSnapShot()
                     self.alarm.ring_alarm()
-                    self.limit = 0
-                    
                 # include the probability in the label
+                
                 label = "{}: {:.2f}%".format(label, max(mask, withoutMask) * 100)
+                
+                color_id = (0, 255, 0)
+                if len(ObjectIDs) > maxlimit:
+                    color_id = (0,0,255)
 
+                text = "ID {}".format(ObjectID+1)
+                cv2.putText(frame, text, (centroid[0] - 10, centroid[1] - 10),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, color_id, 2)
+                cv2.circle(frame, (centroid[0], centroid[1]), 4, color_id, -1)
+                
                 # display the label and bounding box rectangle on the output frame
                 cv2.putText(frame, label, (startX, startY - 10),cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
                 cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
             self.frame = frame
+            if without_mask > 0:
+                self.mask_limit = min(15,self.mask_limit + 1)
+            else:
+                self.mask_limit = max(0,self.mask_limit-1)
+                
             # Return a boolean success flag and the current frame converted to BGR
             return (ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-        
+            
+            
         return (None, None)
     
     def _resize_image(self,event):
@@ -229,7 +249,7 @@ class ImagePage(tk.Frame):
     def takeSnapShot(self):
         ts = datetime.datetime.now()
         filename = "{}.jpg".format(ts.strftime("%Y-%m-%d`_%H-%M-%S"))         
-        cv2.imwrite('D:/SADproject/proofs/' + filename, cv2.cvtColor(self.frame, cv2.COLOR_RGB2BGR))
+        cv2.imwrite('D:/SADproject/flask/proofs/' + filename, self.frame)
         
     def __del__(self):
         tk.Frame.__delattr__(self,self.parent)
