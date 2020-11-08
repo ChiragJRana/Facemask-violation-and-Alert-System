@@ -17,7 +17,6 @@ stat = False
 @app.route('/', methods=['POST'])
 def post_data():
     print(request.get_json())
-
     return jsonify({'status':'200'})
 
 @app.route('/', methods=['GET'])
@@ -58,5 +57,5 @@ def flaskapi():
     app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
     
 if __name__ == '__main__':
-    tkinter()
-    # t1 = threading.Thread(target=tkinter)
+    flaskapi()
+    

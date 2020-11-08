@@ -1,7 +1,9 @@
 package com.example.alarmswitch;
 
 import android.net.UrlQuerySanitizer;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -30,7 +32,11 @@ import okhttp3.RequestBody;
 public class MainActivity extends AppCompatActivity {
 
     private Boolean ALARM_STATUS=true;
+
+//    private String ipAddress;
+
     private String url = "http://" + "10.0.2.2" + ":" + 5000 + "/";
+
     private String postBodyString;
     private MediaType mediaType;
     private RequestBody requestBody;
@@ -42,6 +48,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         alarm = findViewById(R.id.alarm_control);
         alarm.setText("STOP");
+//        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+//        ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+//        Log.d("TAG", ipAddress);
 //        String postBodyText = "{'status': 1}";
 //        MediaType mediaType = MediaType.parse("text/plain; charset=utf-8");
 //        RequestBody postBody = RequestBody.create(mediaType, postBodyText);
@@ -101,6 +110,8 @@ public class MainActivity extends AppCompatActivity {
                             Log.d("TAG", url);
                             Toast.makeText(MainActivity.this, "Something went wrong:" + " " + e.getMessage(), Toast.LENGTH_LONG).show();
                             Log.d("TAG","Something went wrong:" + " " + e.getMessage());
+
+
                             call.cancel();
 
 
