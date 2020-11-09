@@ -28,7 +28,6 @@ import java.util.Map;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
-
 public class MainActivity extends AppCompatActivity {
 
     private Boolean ALARM_STATUS=true;
